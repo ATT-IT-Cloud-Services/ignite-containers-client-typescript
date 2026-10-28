@@ -1,0 +1,48 @@
+{
+  "name": "@att-it-cloud-services/ignite-containers-client",
+  "version": "0.1.0",
+  "description": "TypeScript client for the Ignite Containers game hosting control plane",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ATT-IT-Cloud-Services/ignite-containers-client-typescript.git"
+  },
+  "homepage": "https://github.com/ATT-IT-Cloud-Services/ignite-containers-client-typescript",
+  "keywords": [
+    "ignite",
+    "containers",
+    "hosting",
+    "api",
+    "client",
+    "typescript"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  }
+}
