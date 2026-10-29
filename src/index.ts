@@ -105,7 +105,13 @@ export class IgniteContainersClient {
     if (!/^https?:\/\//.test(options.baseUrl)) {
       throw new TypeError("baseUrl must start with http:// or https://");
     }
-    this.baseUrl = options.baseUrl.replace(/\/+$/, "");
+    // Avoid a potentially quadratic regular expression on an
+    // attacker-controlled base URL; strip trailing slashes linearly.
+    let baseUrl = options.baseUrl;
+    while (baseUrl.endsWith("/")) {
+      baseUrl = baseUrl.slice(0, -1);
+    }
+    this.baseUrl = baseUrl;
     this.apiKey = options.apiKey;
     this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
     this.signal = options.signal;
