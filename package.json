@@ -2,7 +2,7 @@
   "name": "@att-it-cloud-services/ignite-containers-client",
   "version": "1.0.0",
   "description": "TypeScript client for the Ignite Containers game hosting control plane",
-  "license": "AGPL-3.0-or-later",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
