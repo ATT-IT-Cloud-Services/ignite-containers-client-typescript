@@ -1,0 +1,44 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 0.1.1)'
+        required: true
+permissions:
+  contents: write
+  packages: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@att-it-cloud-services'
+      - name: Build and publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${VERSION#v}"
+          npm install --no-audit --no-fund
+          npm version "$version" --no-git-tag-version --allow-same-version
+          npm run build
+          npm publish --access public
+          npm pack --pack-destination .
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${VERSION#v}"
+          tag="v$version"
+          gh release view "$tag" >/dev/null 2>&1 ||             gh release create "$tag" --title "$tag" --notes "TypeScript client $tag."
+          gh release upload "$tag" ./*.tgz --clobber
