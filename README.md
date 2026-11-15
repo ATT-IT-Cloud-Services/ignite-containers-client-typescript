@@ -110,3 +110,16 @@ for (const group of report.resource_groups) {
 
 The report is itemised and totals are not double counted. See
 [`docs/BILLING.md`](../../docs/BILLING.md#13-one-shot-billing-report).
+
+## Build measurements
+
+```ts
+const build = await client.getGitBuild(buildId);
+const live = await client.buildUsage(buildId);
+console.log(live.current, live.usage.cpu_millis, live.usage.memory_byte_seconds);
+
+const samples = await client.buildUsageSamples(buildId);
+```
+
+`billingReport()` includes the same values in `group.builds[].usage` and
+`group.totals.builds`. Aborted builds keep their partial samples.

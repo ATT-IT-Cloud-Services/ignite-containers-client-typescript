@@ -32,6 +32,8 @@ import type {
   CreatePodPortRequest,
   CreatedGitSource,
   GitBuild,
+  BuildUsageReport,
+  BuildUsageSamples,
   GitCredential,
   GitSource,
   Image,
@@ -1592,6 +1594,33 @@ export class IgniteContainersClient {
     const data = await this.request<{ builds: GitBuild[] }>("GET", "/api/v1/git/builds");
     return data.builds;
   }
+  buildUsage(
+    buildId: string,
+    fromMs?: number,
+    toMs?: number,
+  ): Promise<BuildUsageReport> {
+    const params = new URLSearchParams();
+    if (fromMs !== undefined) params.set("from_ms", String(Math.trunc(fromMs)));
+    if (toMs !== undefined) params.set("to_ms", String(Math.trunc(toMs)));
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return this.request("GET", `/api/v1/git/builds/${buildId}/usage${suffix}`);
+  }
+
+  async buildUsageSamples(
+    buildId: string,
+    fromMs?: number,
+    toMs?: number,
+  ): Promise<BuildUsageSamples> {
+    const params = new URLSearchParams();
+    if (fromMs !== undefined) params.set("from_ms", String(Math.trunc(fromMs)));
+    if (toMs !== undefined) params.set("to_ms", String(Math.trunc(toMs)));
+    const suffix = params.toString() ? `?${params.toString()}` : "";
+    return this.request(
+      "GET",
+      `/api/v1/git/builds/${buildId}/usage/samples${suffix}`,
+    );
+  }
+
 
   getGitBuild(id: string): Promise<GitBuild> {
     return this.request("GET", `/api/v1/git/builds/${id}`);

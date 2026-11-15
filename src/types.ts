@@ -1249,6 +1249,17 @@ export interface BillingBuildTotals {
   queued: number;
   cancelled: number;
   duration_ms: number;
+  measured_count: number;
+  build_ms: number;
+  cpu_millis: number;
+  memory_byte_seconds: number;
+  max_peak_memory_bytes: number;
+  disk_read_bytes: number;
+  disk_write_bytes: number;
+  network_rx_bytes: number;
+  network_tx_bytes: number;
+  context_bytes: number;
+  image_bytes: number;
 }
 
 export interface BillingImageTotals {
@@ -1367,6 +1378,7 @@ export interface BillingBuild {
   finished_at_ms?: number | null;
   queue_ms?: number | null;
   duration_ms?: number | null;
+  usage?: BuildUsage | null;
   coverage: BillingCoverage;
 }
 
@@ -1823,6 +1835,56 @@ export interface CreatedGitSource extends GitSource {
   webhook_secret: string;
 }
 
+export interface BuildUsageSample {
+  sampled_at: Timestamp;
+  driver: string;
+  measurement: string;
+  wall_ms: number;
+  cpu_millis: number;
+  memory_bytes: number;
+  disk_read_bytes: number;
+  disk_write_bytes: number;
+  network_rx_bytes: number;
+  network_tx_bytes: number;
+  final_sample: boolean;
+}
+
+export interface BuildUsage {
+  driver: string;
+  measurement: string;
+  wall_ms: number;
+  setup_ms: number;
+  clone_ms: number;
+  build_ms: number;
+  cpu_millis: number;
+  memory_byte_seconds: number;
+  peak_memory_bytes: number;
+  disk_read_bytes: number;
+  disk_write_bytes: number;
+  network_rx_bytes: number;
+  network_tx_bytes: number;
+  context_bytes: number;
+  image_bytes: number;
+  sample_count: number;
+  first_sample_ms?: number | null;
+  last_sample_ms?: number | null;
+  gaps: number;
+  complete: boolean;
+}
+
+export interface BuildUsageReport {
+  build_id: Uuid;
+  from_ms: number;
+  to_ms: number;
+  usage: BuildUsage;
+  current?: BuildUsageSample | null;
+}
+
+export interface BuildUsageSamples {
+  build_id: Uuid;
+  samples: BuildUsageSample[];
+}
+
 export interface GitBuild {
   id: Uuid;
   source_id: Uuid;
@@ -1839,6 +1901,7 @@ export interface GitBuild {
   created_at: Timestamp;
   started_at?: Timestamp | null;
   finished_at?: Timestamp | null;
+  build_usage?: BuildUsage | null;
 }
 
 export interface CreateGitCredentialRequest {
