@@ -449,6 +449,11 @@ export interface Pod {
   image: string;
   startup: string;
   limits: Limits;
+  stop?: {
+    kind: "command" | "signal";
+    value: string;
+    timeout_seconds: number;
+  } | null;
   state: PodState;
   desired_running: boolean;
   suspended: boolean;
@@ -820,6 +825,11 @@ export interface CreatePodRequest {
   image?: string;
   variables?: Record<string, string>;
   limits?: Limits;
+  stop?: {
+    kind: "command" | "signal";
+    value: string;
+    timeout_seconds: number;
+  };
   allocations?: Uuid[];
   auto_allocations?: number;
   protocol?: PortProtocol;
