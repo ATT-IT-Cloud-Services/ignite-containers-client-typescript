@@ -1,23 +1,136 @@
 import type {
+  AdapterList,
+  AddressQuery,
+  CreateMeteringProfileRequest,
+  CreateResourceGroupRequest,
+  GrantTenantAccessRequest,
+  ComposeConverted,
+  ComposeDeployResult,
+  BindExternalDatabaseRequest,
+  CreateExternalDatabaseRequest,
+  CreateStorageBackendRequest,
+  CreateStorageGatewayTokenRequest,
+  CreateVolumeRequest,
+  DatabaseTest,
+  DeployComposeRequest,
+  ExternalDatabase,
+  MountVolumeRequest,
+  PodExternalDatabase,
+  PodExternalDatabaseView,
+  PodPortEvent,
+  PodVolumeMount,
+  PodVolumeMountView,
+  CreatedStorageGatewayToken,
+  StorageBackend,
+  StorageGatewayToken,
+  UpdateExternalDatabaseRequest,
+  UpdateStorageBackendRequest,
+  UpdateVolumeRequest,
+  Volume,
+  CreateGitCredentialRequest,
+  CreateGitSourceRequest,
+  CreatePodPortRequest,
+  CreatedGitSource,
+  GitBuild,
+  GitCredential,
+  GitSource,
+  Image,
+  MetricsArchive,
+  MetricsArchiveReport,
+  MetricsStoragePolicy,
+  UpsertMetricsStoragePolicyRequest,
+  UpdateGitSourceRequest,
+  ImageCopy,
+  ImagePull,
+  PullImageRequest,
+  PodPort,
+  UploadImageRequest,
+  UpdatePodPortRequest,
+  CreateTenantRequest,
+  CreateTransferKeyRequest,
+  CreatedTransferKey,
+  MeteringProfile,
+  ReferenceAggregate,
+  ResourceGroup,
+  StartTransferRequest,
+  Tenant,
+  TenantTransfer,
+  TransferKey,
+  UpdateResourceGroupRequest,
+  UpdateTenantRequest,
+  UsageValue,
   Allocation,
   ApiKey,
   AuditEvent,
+  BindIpRequest,
+  Consumption,
+  CreateAdapterRequest,
+  CreateForwardRequest,
+  CreateIpRequest,
   CreateProxyRouteRequest,
+  CreateRuntimeGroupRequest,
+  CreateWebhookRequest,
+  CreatedWebhook,
+  FloatingMode,
+  IpAddress,
+  IpKind,
+  JobQuery,
+  MeterUnit,
+  MeterView,
+  MeterViewRequest,
+  ImportNestRequest,
+  NestImportResult,
+  PlatformSpec,
+  PortForward,
+  ProvisionConfirmation,
+  ProxyAdapter,
+  Revision,
+  Rollout,
+  RuntimeGroup,
+  TransferAccepted,
+  TransferRequest,
+  UpdateForwardRequest,
+  UpdateIpRequest,
+  UpdatePolicy,
+  UpdateRuntimeGroupRequest,
+  UpdateWebhookRequest,
+  UsageSample,
+  UsageSummary,
+  WebhookDelivery,
+  WebhookSubscription,
+  CreateVnetRequest,
+  AttachVnetRequest,
+  CreateInterconnectRequest,
+  CreateListenerRequest,
+  CreateListenerRouteRequest,
+  ExportTemplateRequest,
+  CloneTemplateRequest,
+  ExportTemplateResult,
+  CloneTemplateResult,
+  Vnet,
+  VnetAttachment,
+  Interconnect,
+  ProxyListener,
+  ProxyListenerRoute,
   ProxyDeleteResult,
   ProxyMutation,
   ProxyReconcileResult,
   ProxyRoute,
   ProxyStatus,
+  ProxyCertificate,
+  ProxyCertificateMutation,
+  ProxyCertificateDeleteResult,
+  UploadProxyCertificateRequest,
   PublishTemplateVersionRequest,
-  ServerEnvironment,
+  PodEnvironment,
   UpdateProxyRouteRequest,
   NodeState,
   CreateAllocationsRequest,
   CreateDatabaseHostRequest,
   CreateKeyRequest,
   CreateNodeRequest,
-  CreateServerDatabaseRequest,
-  CreateServerRequest,
+  CreatePodDatabaseRequest,
+  CreatePodRequest,
   CreatedDatabase,
   Backup,
   BulkResult,
@@ -43,15 +156,15 @@ import type {
   Node,
   NodeWithToken,
   PowerSignal,
-  Server,
-  ServerDatabase,
-  ServerDetail,
-  ServerQuery,
-  ServerStats,
+  Pod,
+  PodDatabase,
+  PodDetail,
+  PodQuery,
+  PodStats,
   TemplateRecord,
   TemplateVersionRecord,
   UpdateNodeRequest,
-  UpdateServerRequest,
+  UpdatePodRequest,
 } from "./types.js";
 
 export * from "./types.js";
@@ -163,8 +276,8 @@ export class IgniteContainersClient {
 
   // environment / audit ----------------------------------------------------
 
-  getServerEnvironment(id: string): Promise<ServerEnvironment> {
-    return this.request("GET", `/api/v1/servers/${id}/environment`);
+  getPodEnvironment(id: string): Promise<PodEnvironment> {
+    return this.request("GET", `/api/v1/pods/${id}/environment`);
   }
 
   async listAuditEvents(limit = 100): Promise<AuditEvent[]> {
@@ -200,6 +313,122 @@ export class IgniteContainersClient {
 
   reconcileProxy(): Promise<ProxyReconcileResult> {
     return this.request("POST", "/api/v1/proxy/reconcile", {});
+  }
+
+  async listProxyCertificates(): Promise<ProxyCertificate[]> {
+    const data = await this.request<{ certificates: ProxyCertificate[] }>(
+      "GET",
+      "/api/v1/proxy/certificates",
+    );
+    return data.certificates;
+  }
+
+  uploadProxyCertificate(request: UploadProxyCertificateRequest): Promise<ProxyCertificateMutation> {
+    return this.request("POST", "/api/v1/proxy/certificates", request);
+  }
+
+  getProxyCertificate(id: string): Promise<ProxyCertificate> {
+    return this.request("GET", `/api/v1/proxy/certificates/${id}`);
+  }
+
+  deleteProxyCertificate(id: string): Promise<ProxyCertificateDeleteResult> {
+    return this.request("DELETE", `/api/v1/proxy/certificates/${id}`);
+  }
+
+  // network fabric ---------------------------------------------------------
+
+  async listVnets(): Promise<Vnet[]> {
+    const data = await this.request<{ vnets: Vnet[] }>("GET", "/api/v1/vnets");
+    return data.vnets;
+  }
+
+  createVnet(request: CreateVnetRequest): Promise<Vnet> {
+    return this.request("POST", "/api/v1/vnets", request);
+  }
+
+  deleteVnet(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/vnets/${id}`);
+  }
+
+  async listVnetAttachments(id: string): Promise<VnetAttachment[]> {
+    const data = await this.request<{ attachments: VnetAttachment[] }>(
+      "GET",
+      `/api/v1/vnets/${id}/attachments`,
+    );
+    return data.attachments;
+  }
+
+  attachVnet(id: string, request: AttachVnetRequest): Promise<VnetAttachment> {
+    return this.request("POST", `/api/v1/vnets/${id}/attachments`, request);
+  }
+
+  detachVnet(id: string, podId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/vnets/${id}/attachments/${podId}`);
+  }
+
+  async listInterconnects(): Promise<Interconnect[]> {
+    const data = await this.request<{ interconnects: Interconnect[] }>(
+      "GET",
+      "/api/v1/interconnects",
+    );
+    return data.interconnects;
+  }
+
+  createInterconnect(request: CreateInterconnectRequest): Promise<Interconnect> {
+    return this.request("POST", "/api/v1/interconnects", request);
+  }
+
+  deleteInterconnect(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/interconnects/${id}`);
+  }
+
+  async listListeners(): Promise<ProxyListener[]> {
+    const data = await this.request<{ listeners: ProxyListener[] }>(
+      "GET",
+      "/api/v1/proxy/listeners",
+    );
+    return data.listeners;
+  }
+
+  createListener(request: CreateListenerRequest): Promise<ProxyListener> {
+    return this.request("POST", "/api/v1/proxy/listeners", request);
+  }
+
+  deleteListener(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/proxy/listeners/${id}`);
+  }
+
+  async listListenerRoutes(id: string): Promise<ProxyListenerRoute[]> {
+    const data = await this.request<{ routes: ProxyListenerRoute[] }>(
+      "GET",
+      `/api/v1/proxy/listeners/${id}/routes`,
+    );
+    return data.routes;
+  }
+
+  createListenerRoute(
+    id: string,
+    request: CreateListenerRouteRequest,
+  ): Promise<ProxyListenerRoute> {
+    return this.request("POST", `/api/v1/proxy/listeners/${id}/routes`, request);
+  }
+
+  deleteListenerRoute(id: string, routeId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/proxy/listeners/${id}/routes/${routeId}`);
+  }
+
+  exportTemplate(
+    podId: string,
+    request: ExportTemplateRequest,
+  ): Promise<ExportTemplateResult> {
+    return this.request("POST", `/api/v1/pods/${podId}/export-template`, request);
+  }
+
+  cloneTemplate(
+    templateId: string,
+    request: CloneTemplateRequest,
+  ): Promise<CloneTemplateResult> {
+    return this.request("POST", `/api/v1/templates/${templateId}/clone`, request);
   }
 
   // api keys ---------------------------------------------------------------
@@ -289,43 +518,43 @@ export class IgniteContainersClient {
     return this.request("POST", `/api/v1/database-hosts/${id}/test`, {});
   }
 
-  async listServerDatabases(serverId: string): Promise<ServerDatabase[]> {
-    const data = await this.request<{ databases: ServerDatabase[] }>(
+  async listPodDatabases(podId: string): Promise<PodDatabase[]> {
+    const data = await this.request<{ databases: PodDatabase[] }>(
       "GET",
-      `/api/v1/servers/${serverId}/databases`,
+      `/api/v1/pods/${podId}/databases`,
     );
     return data.databases;
   }
 
-  createServerDatabase(
-    serverId: string,
-    request: CreateServerDatabaseRequest = {},
+  createPodDatabase(
+    podId: string,
+    request: CreatePodDatabaseRequest = {},
   ): Promise<CreatedDatabase> {
-    return this.request("POST", `/api/v1/servers/${serverId}/databases`, request);
+    return this.request("POST", `/api/v1/pods/${podId}/databases`, request);
   }
 
-  deleteServerDatabase(serverId: string, databaseId: string): Promise<void> {
-    return this.request("DELETE", `/api/v1/servers/${serverId}/databases/${databaseId}`);
+  deletePodDatabase(podId: string, databaseId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${podId}/databases/${databaseId}`);
   }
 
   // sftp -------------------------------------------------------------------
 
-  createSftpCredential(serverId: string, ttlSeconds?: number): Promise<CreatedSftp> {
-    return this.request("POST", `/api/v1/servers/${serverId}/sftp`, {
+  createSftpCredential(podId: string, ttlSeconds?: number): Promise<CreatedSftp> {
+    return this.request("POST", `/api/v1/pods/${podId}/sftp`, {
       ttl_seconds: ttlSeconds,
     });
   }
 
-  async listSftpCredentials(serverId: string): Promise<SftpCredential[]> {
+  async listSftpCredentials(podId: string): Promise<SftpCredential[]> {
     const data = await this.request<{ credentials: SftpCredential[] }>(
       "GET",
-      `/api/v1/servers/${serverId}/sftp`,
+      `/api/v1/pods/${podId}/sftp`,
     );
     return data.credentials;
   }
 
-  revokeSftpCredential(serverId: string, credentialId: string): Promise<void> {
-    return this.request("DELETE", `/api/v1/servers/${serverId}/sftp/${credentialId}`);
+  revokeSftpCredential(podId: string, credentialId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${podId}/sftp/${credentialId}`);
   }
 
   // notifications ----------------------------------------------------------
@@ -352,51 +581,51 @@ export class IgniteContainersClient {
 
   // bulk -------------------------------------------------------------------
 
-  async bulkPower(serverIds: string[], signal: PowerSignal): Promise<BulkResult[]> {
+  async bulkPower(podIds: string[], signal: PowerSignal): Promise<BulkResult[]> {
     const data = await this.request<{ results: BulkResult[] }>(
       "POST",
-      "/api/v1/servers/bulk/power",
-      { server_ids: serverIds, signal },
+      "/api/v1/pods/bulk/power",
+      { pod_ids: podIds, signal },
     );
     return data.results;
   }
 
-  async bulkCommand(serverIds: string[], command: string): Promise<BulkResult[]> {
+  async bulkCommand(podIds: string[], command: string): Promise<BulkResult[]> {
     const data = await this.request<{ results: BulkResult[] }>(
       "POST",
-      "/api/v1/servers/bulk/command",
-      { server_ids: serverIds, command },
+      "/api/v1/pods/bulk/command",
+      { pod_ids: podIds, command },
     );
     return data.results;
   }
 
   // backups ----------------------------------------------------------------
 
-  async listBackups(serverId: string): Promise<Backup[]> {
+  async listBackups(podId: string): Promise<Backup[]> {
     const data = await this.request<{ backups: Backup[] }>(
       "GET",
-      `/api/v1/servers/${serverId}/backups`,
+      `/api/v1/pods/${podId}/backups`,
     );
     return data.backups;
   }
 
-  createBackup(serverId: string, name?: string): Promise<Backup> {
-    return this.request("POST", `/api/v1/servers/${serverId}/backups`, {
+  createBackup(podId: string, name?: string): Promise<Backup> {
+    return this.request("POST", `/api/v1/pods/${podId}/backups`, {
       name,
     });
   }
 
-  deleteBackup(serverId: string, backupId: string): Promise<void> {
-    return this.request("DELETE", `/api/v1/servers/${serverId}/backups/${backupId}`);
+  deleteBackup(podId: string, backupId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${podId}/backups/${backupId}`);
   }
 
-  restoreBackup(serverId: string, backupId: string): Promise<Backup> {
-    return this.request("POST", `/api/v1/servers/${serverId}/backups/${backupId}/restore`, {});
+  restoreBackup(podId: string, backupId: string): Promise<Backup> {
+    return this.request("POST", `/api/v1/pods/${podId}/backups/${backupId}/restore`, {});
   }
 
-  async downloadBackup(serverId: string, backupId: string): Promise<ArrayBuffer> {
+  async downloadBackup(podId: string, backupId: string): Promise<ArrayBuffer> {
     const response = await this.fetchImpl(
-      `${this.baseUrl}/api/v1/servers/${serverId}/backups/${backupId}/download`,
+      `${this.baseUrl}/api/v1/pods/${podId}/backups/${backupId}/download`,
       {
         headers: { authorization: `Bearer ${this.apiKey}` },
         signal: this.signal,
@@ -409,21 +638,65 @@ export class IgniteContainersClient {
     return response.arrayBuffer();
   }
 
+  // volume export / import ------------------------------------------------
+
+  async downloadVolume(podId: string, path?: string): Promise<ArrayBuffer> {
+    const query = path ? `?path=${encodeURIComponent(path)}` : "";
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/pods/${podId}/volume/export${query}`,
+      {
+        headers: { authorization: `Bearer ${this.apiKey}` },
+        signal: this.signal,
+      },
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new IgniteContainersError(response.status, "download_failed", text);
+    }
+    return response.arrayBuffer();
+  }
+
+  async importVolume(
+    podId: string,
+    archive: Blob | ArrayBuffer | Uint8Array,
+    options: { path?: string; wipe?: boolean } = {},
+  ): Promise<{ ok: boolean; bytes: number }> {
+    const path = options.path ?? "";
+    const wipe = options.wipe ?? true;
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/pods/${podId}/volume/import?path=${encodeURIComponent(path)}&wipe=${wipe}`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${this.apiKey}`,
+          "content-type": "application/gzip",
+        },
+        body: archive as unknown as BodyInit,
+        signal: this.signal,
+      },
+    );
+    const text = await response.text();
+    if (!response.ok) {
+      throw new IgniteContainersError(response.status, "upload_failed", text);
+    }
+    return JSON.parse(text) as { ok: boolean; bytes: number };
+  }
+
   // schedules --------------------------------------------------------------
 
-  async listSchedules(serverId: string): Promise<Schedule[]> {
+  async listSchedules(podId: string): Promise<Schedule[]> {
     const data = await this.request<{ schedules: Schedule[] }>(
       "GET",
-      `/api/v1/servers/${serverId}/schedules`,
+      `/api/v1/pods/${podId}/schedules`,
     );
     return data.schedules;
   }
 
   createSchedule(
-    serverId: string,
+    podId: string,
     request: { name: string; cron: string; actions: ScheduleAction[]; enabled?: boolean },
   ): Promise<Schedule> {
-    return this.request("POST", `/api/v1/servers/${serverId}/schedules`, request);
+    return this.request("POST", `/api/v1/pods/${podId}/schedules`, request);
   }
 
   updateSchedule(
@@ -448,74 +721,74 @@ export class IgniteContainersClient {
 
   // files ------------------------------------------------------------------
 
-  listFiles(serverId: string, path = "/"): Promise<FileList> {
+  listFiles(podId: string, path = "/"): Promise<FileList> {
     return this.request(
       "GET",
-      `/api/v1/servers/${serverId}/files?path=${encodeURIComponent(path)}`,
+      `/api/v1/pods/${podId}/files?path=${encodeURIComponent(path)}`,
     );
   }
 
-  readFile(serverId: string, path: string): Promise<FileContent> {
+  readFile(podId: string, path: string): Promise<FileContent> {
     return this.request(
       "GET",
-      `/api/v1/servers/${serverId}/files/content?path=${encodeURIComponent(path)}`,
+      `/api/v1/pods/${podId}/files/content?path=${encodeURIComponent(path)}`,
     );
   }
 
   writeFile(
-    serverId: string,
+    podId: string,
     path: string,
     content: string,
     encoding: "utf8" | "base64" = "utf8",
   ): Promise<FileEntry> {
-    return this.request("PUT", `/api/v1/servers/${serverId}/files/content`, {
+    return this.request("PUT", `/api/v1/pods/${podId}/files/content`, {
       path,
       content,
       encoding,
     });
   }
 
-  mkdir(serverId: string, path: string): Promise<{ ok: boolean }> {
-    return this.request("POST", `/api/v1/servers/${serverId}/files/mkdir`, { path });
+  mkdir(podId: string, path: string): Promise<{ ok: boolean }> {
+    return this.request("POST", `/api/v1/pods/${podId}/files/mkdir`, { path });
   }
 
-  renameFile(serverId: string, from: string, to: string): Promise<{ ok: boolean }> {
-    return this.request("POST", `/api/v1/servers/${serverId}/files/rename`, { from, to });
+  renameFile(podId: string, from: string, to: string): Promise<{ ok: boolean }> {
+    return this.request("POST", `/api/v1/pods/${podId}/files/rename`, { from, to });
   }
 
-  chmodFile(serverId: string, path: string, mode: string): Promise<{ ok: boolean }> {
-    return this.request("POST", `/api/v1/servers/${serverId}/files/chmod`, { path, mode });
+  chmodFile(podId: string, path: string, mode: string): Promise<{ ok: boolean }> {
+    return this.request("POST", `/api/v1/pods/${podId}/files/chmod`, { path, mode });
   }
 
-  deleteFile(serverId: string, path: string): Promise<{ ok: boolean }> {
+  deleteFile(podId: string, path: string): Promise<{ ok: boolean }> {
     return this.request(
       "DELETE",
-      `/api/v1/servers/${serverId}/files?path=${encodeURIComponent(path)}`,
+      `/api/v1/pods/${podId}/files?path=${encodeURIComponent(path)}`,
     );
   }
 
-  compressFile(serverId: string, path: string): Promise<FileEntry> {
-    return this.request("POST", `/api/v1/servers/${serverId}/files/compress`, { path });
+  compressFile(podId: string, path: string): Promise<FileEntry> {
+    return this.request("POST", `/api/v1/pods/${podId}/files/compress`, { path });
   }
 
-  decompressFile(serverId: string, path: string): Promise<{ ok: boolean }> {
-    return this.request("POST", `/api/v1/servers/${serverId}/files/decompress`, { path });
+  decompressFile(podId: string, path: string): Promise<{ ok: boolean }> {
+    return this.request("POST", `/api/v1/pods/${podId}/files/decompress`, { path });
   }
 
-  suspendServer(serverId: string): Promise<Server> {
-    return this.request("POST", `/api/v1/servers/${serverId}/suspend`, {});
+  suspendPod(podId: string): Promise<Pod> {
+    return this.request("POST", `/api/v1/pods/${podId}/suspend`, {});
   }
 
-  resumeServer(serverId: string): Promise<Server> {
-    return this.request("POST", `/api/v1/servers/${serverId}/resume`, {});
+  resumePod(podId: string): Promise<Pod> {
+    return this.request("POST", `/api/v1/pods/${podId}/resume`, {});
   }
 
   // allocations ------------------------------------------------------------
 
-  async listAllocations(params: { nodeId?: string; serverId?: string } = {}): Promise<Allocation[]> {
+  async listAllocations(params: { nodeId?: string; podId?: string } = {}): Promise<Allocation[]> {
     const query = new URLSearchParams();
     if (params.nodeId) query.set("node_id", params.nodeId);
-    if (params.serverId) query.set("server_id", params.serverId);
+    if (params.podId) query.set("pod_id", params.podId);
     const qs = query.toString();
     const suffix = qs.length > 0 ? `?${qs}` : "";
     const data = await this.request<{ allocations: Allocation[] }>("GET", `/api/v1/allocations${suffix}`);
@@ -588,9 +861,9 @@ export class IgniteContainersClient {
     });
   }
 
-  // servers ----------------------------------------------------------------
+  // pods ----------------------------------------------------------------
 
-  async listServers(query: ServerQuery = {}): Promise<Server[]> {
+  async listPods(query: PodQuery = {}): Promise<Pod[]> {
     const params = new URLSearchParams();
     if (query.node_id) params.set("node_id", query.node_id);
     if (query.state) params.set("state", query.state);
@@ -600,63 +873,63 @@ export class IgniteContainersClient {
     if (query.offset !== undefined) params.set("offset", String(query.offset));
     const qs = params.toString();
     const suffix = qs.length > 0 ? `?${qs}` : "";
-    const data = await this.request<{ servers: Server[] }>("GET", `/api/v1/servers${suffix}`);
-    return data.servers;
+    const data = await this.request<{ pods: Pod[] }>("GET", `/api/v1/pods${suffix}`);
+    return data.pods;
   }
 
-  createServer(request: CreateServerRequest): Promise<ServerDetail> {
-    return this.request("POST", "/api/v1/servers", request);
+  createPod(request: CreatePodRequest): Promise<PodDetail> {
+    return this.request("POST", "/api/v1/pods", request);
   }
 
-  getServer(id: string): Promise<ServerDetail> {
-    return this.request("GET", `/api/v1/servers/${id}`);
+  getPod(id: string): Promise<PodDetail> {
+    return this.request("GET", `/api/v1/pods/${id}`);
   }
 
-  updateServer(id: string, request: UpdateServerRequest): Promise<Server> {
-    return this.request("PATCH", `/api/v1/servers/${id}`, request);
+  updatePod(id: string, request: UpdatePodRequest): Promise<Pod> {
+    return this.request("PATCH", `/api/v1/pods/${id}`, request);
   }
 
-  deleteServer(id: string): Promise<void> {
-    return this.request("DELETE", `/api/v1/servers/${id}`);
+  deletePod(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${id}`);
   }
 
   power(id: string, signal: PowerSignal): Promise<Job> {
-    return this.request("POST", `/api/v1/servers/${id}/power`, { signal });
+    return this.request("POST", `/api/v1/pods/${id}/power`, { signal });
   }
 
   command(id: string, command: string): Promise<unknown> {
-    return this.request("POST", `/api/v1/servers/${id}/command`, { command });
+    return this.request("POST", `/api/v1/pods/${id}/command`, { command });
   }
 
   logs(id: string, lines = 200): Promise<LogChunk> {
     return this.request(
       "GET",
-      `/api/v1/servers/${id}/logs?lines=${Math.max(1, Math.min(2000, Math.trunc(lines)))}`,
+      `/api/v1/pods/${id}/logs?lines=${Math.max(1, Math.min(2000, Math.trunc(lines)))}`,
     );
   }
 
-  stats(id: string): Promise<ServerStats> {
-    return this.request("GET", `/api/v1/servers/${id}/stats`);
+  stats(id: string): Promise<PodStats> {
+    return this.request("GET", `/api/v1/pods/${id}/stats`);
   }
 
-  setLimits(id: string, limits: Limits): Promise<Server> {
-    return this.request("PATCH", `/api/v1/servers/${id}`, { limits });
+  setLimits(id: string, limits: Limits): Promise<Pod> {
+    return this.request("PATCH", `/api/v1/pods/${id}`, { limits });
   }
 
   attachAllocation(id: string, allocationId: string): Promise<Allocation> {
-    return this.request("POST", `/api/v1/servers/${id}/allocations`, { allocation_id: allocationId });
+    return this.request("POST", `/api/v1/pods/${id}/allocations`, { allocation_id: allocationId });
   }
 
   detachAllocation(id: string, allocationId: string): Promise<void> {
-    return this.request("DELETE", `/api/v1/servers/${id}/allocations/${allocationId}`);
+    return this.request("DELETE", `/api/v1/pods/${id}/allocations/${allocationId}`);
   }
 
   reinstall(id: string): Promise<Job> {
-    return this.request("POST", `/api/v1/servers/${id}/reinstall`, {});
+    return this.request("POST", `/api/v1/pods/${id}/reinstall`, {});
   }
 
   async listJobs(id: string): Promise<Job[]> {
-    const data = await this.request<{ jobs: Job[] }>("GET", `/api/v1/servers/${id}/jobs`);
+    const data = await this.request<{ jobs: Job[] }>("GET", `/api/v1/pods/${id}/jobs`);
     return data.jobs;
   }
 
@@ -665,7 +938,7 @@ export class IgniteContainersClient {
    * must consume/close `response.body`.
    */
   async logsStream(id: string): Promise<Response> {
-    const response = await this.fetchImpl(`${this.baseUrl}/api/v1/servers/${id}/logs/stream`, {
+    const response = await this.fetchImpl(`${this.baseUrl}/api/v1/pods/${id}/logs/stream`, {
       headers: {
         authorization: `Bearer ${this.apiKey}`,
         accept: "text/event-stream",
@@ -678,6 +951,861 @@ export class IgniteContainersClient {
       throw new IgniteContainersError(response.status, "unknown", text || `${response.status} ${response.statusText}`);
     }
     return response;
+  }
+
+  // runtime groups ---------------------------------------------------------
+
+  async listDeploymentClasses(): Promise<RuntimeGroup[]> {
+    const data = await this.request<{ groups: RuntimeGroup[] }>(
+      "GET",
+      "/api/v1/deployment-classes",
+    );
+    return data.groups;
+  }
+
+  createDeploymentClass(request: CreateRuntimeGroupRequest): Promise<RuntimeGroup> {
+    return this.request("POST", "/api/v1/deployment-classes", request);
+  }
+
+  updateDeploymentClass(
+    id: string,
+    request: UpdateRuntimeGroupRequest,
+  ): Promise<RuntimeGroup> {
+    return this.request("PATCH", `/api/v1/deployment-classes/${id}`, request);
+  }
+
+  deleteDeploymentClass(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/deployment-classes/${id}`);
+  }
+
+  async listRuntimeGroups(): Promise<RuntimeGroup[]> {
+    const data = await this.request<{ groups: RuntimeGroup[] }>(
+      "GET",
+      "/api/v1/runtime-groups",
+    );
+    return data.groups;
+  }
+
+  createRuntimeGroup(request: CreateRuntimeGroupRequest): Promise<RuntimeGroup> {
+    return this.request("POST", "/api/v1/runtime-groups", request);
+  }
+
+  updateRuntimeGroup(
+    id: string,
+    request: UpdateRuntimeGroupRequest,
+  ): Promise<RuntimeGroup> {
+    return this.request("PATCH", `/api/v1/runtime-groups/${id}`, request);
+  }
+
+  deleteRuntimeGroup(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/runtime-groups/${id}`);
+  }
+
+  runtimeGroupUsage(id: string, from: string, to: string): Promise<UsageSummary> {
+    const query = new URLSearchParams({ from, to });
+    return this.request("GET", `/api/v1/runtime-groups/${id}/usage?${query.toString()}`);
+  }
+
+  // provision confirmation -------------------------------------------------
+
+  podConfirmation(id: string, waitSeconds?: number): Promise<ProvisionConfirmation> {
+    const suffix =
+      waitSeconds === undefined
+        ? ""
+        : `?wait_seconds=${Math.max(0, Math.min(120, Math.trunc(waitSeconds)))}`;
+    return this.request("GET", `/api/v1/pods/${id}/confirmation${suffix}`);
+  }
+
+  // addresses and port forwards --------------------------------------------
+
+  async listIps(query: AddressQuery = {}): Promise<IpAddress[]> {
+    const params = new URLSearchParams();
+    if (query.node_id) params.set("node_id", query.node_id);
+    if (query.pod_id) params.set("pod_id", query.pod_id);
+    const encoded = params.toString();
+    const data = await this.request<{ addresses: IpAddress[] }>(
+      "GET",
+      `/api/v1/ips${encoded ? `?${encoded}` : ""}`,
+    );
+    return data.addresses;
+  }
+
+  createIp(request: CreateIpRequest): Promise<IpAddress> {
+    return this.request("POST", "/api/v1/ips", request);
+  }
+
+  getIp(id: string): Promise<IpAddress> {
+    return this.request("GET", `/api/v1/ips/${id}`);
+  }
+
+  updateIp(id: string, request: UpdateIpRequest): Promise<IpAddress> {
+    return this.request("PATCH", `/api/v1/ips/${id}`, request);
+  }
+
+  deleteIp(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/ips/${id}`);
+  }
+
+  async listForwards(query: AddressQuery = {}): Promise<PortForward[]> {
+    const params = new URLSearchParams();
+    if (query.node_id) params.set("node_id", query.node_id);
+    if (query.pod_id) params.set("pod_id", query.pod_id);
+    const encoded = params.toString();
+    const data = await this.request<{ forwards: PortForward[] }>(
+      "GET",
+      `/api/v1/forwards${encoded ? `?${encoded}` : ""}`,
+    );
+    return data.forwards;
+  }
+
+  async listPodIps(id: string): Promise<IpAddress[]> {
+    const data = await this.request<{ addresses: IpAddress[] }>(
+      "GET",
+      `/api/v1/pods/${id}/ips`,
+    );
+    return data.addresses;
+  }
+
+  bindPodIp(id: string, request: BindIpRequest): Promise<IpAddress> {
+    return this.request("POST", `/api/v1/pods/${id}/ips`, request);
+  }
+
+  unbindPodIp(id: string, ipId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${id}/ips/${ipId}`);
+  }
+
+  async listPodForwards(id: string): Promise<PortForward[]> {
+    const data = await this.request<{ forwards: PortForward[] }>(
+      "GET",
+      `/api/v1/pods/${id}/forwards`,
+    );
+    return data.forwards;
+  }
+
+  createPodForward(id: string, request: CreateForwardRequest): Promise<PortForward> {
+    return this.request("POST", `/api/v1/pods/${id}/forwards`, request);
+  }
+
+  updatePodForward(
+    id: string,
+    forwardId: string,
+    request: UpdateForwardRequest,
+  ): Promise<PortForward> {
+    return this.request("PATCH", `/api/v1/pods/${id}/forwards/${forwardId}`, request);
+  }
+
+  deletePodForward(id: string, forwardId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${id}/forwards/${forwardId}`);
+  }
+
+  // platform ---------------------------------------------------------------
+
+  getPlatform(id: string): Promise<PlatformSpec> {
+    return this.request("GET", `/api/v1/pods/${id}/platform`);
+  }
+
+  putPlatform(id: string, spec: PlatformSpec): Promise<PlatformSpec> {
+    return this.request("PUT", `/api/v1/pods/${id}/platform`, spec);
+  }
+
+  // autonomous updates -----------------------------------------------------
+
+  getUpdatePolicy(id: string): Promise<UpdatePolicy> {
+    return this.request("GET", `/api/v1/pods/${id}/update-policy`);
+  }
+
+  putUpdatePolicy(id: string, policy: UpdatePolicy): Promise<UpdatePolicy> {
+    return this.request("PUT", `/api/v1/pods/${id}/update-policy`, policy);
+  }
+
+  checkPodUpdates(id: string): Promise<{ accepted: boolean }> {
+    return this.request("POST", `/api/v1/pods/${id}/updates/check`, {});
+  }
+
+  async listRevisions(id: string): Promise<Revision[]> {
+    const data = await this.request<{ revisions: Revision[] }>(
+      "GET",
+      `/api/v1/pods/${id}/revisions`,
+    );
+    return data.revisions;
+  }
+
+  deleteRevision(id: string, revisionId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${id}/revisions/${revisionId}`);
+  }
+
+  pinRevision(id: string, revisionId: string, pinned = true): Promise<Revision> {
+    return this.request("POST", `/api/v1/pods/${id}/revisions/${revisionId}/pin`, {
+      pinned,
+    });
+  }
+
+  async getRollout(id: string): Promise<Rollout | undefined> {
+    const data = await this.request<{ rollout: Rollout | null }>(
+      "GET",
+      `/api/v1/pods/${id}/rollout`,
+    );
+    return data.rollout ?? undefined;
+  }
+
+  // metering ---------------------------------------------------------------
+
+  getMeterView(scope: string, scopeId?: string): Promise<MeterView> {
+    const params = new URLSearchParams({ scope });
+    if (scopeId) params.set("scope_id", scopeId);
+    return this.request("GET", `/api/v1/metering?${params.toString()}`);
+  }
+
+  setMeterView(request: MeterViewRequest): Promise<MeterView> {
+    return this.request("PUT", "/api/v1/metering", request);
+  }
+
+  podUsage(id: string, from: string, to: string): Promise<UsageSummary> {
+    const query = new URLSearchParams({ from, to });
+    return this.request("GET", `/api/v1/pods/${id}/usage?${query.toString()}`);
+  }
+
+  async podUsageSamples(id: string, from: string, to: string): Promise<UsageSample[]> {
+    const query = new URLSearchParams({ from, to });
+    const data = await this.request<{ samples: UsageSample[] }>(
+      "GET",
+      `/api/v1/pods/${id}/usage/samples?${query.toString()}`,
+    );
+    return data.samples;
+  }
+
+  // jobs and transfer ------------------------------------------------------
+
+  async listAllJobs(query: JobQuery = {}): Promise<Job[]> {
+    const params = new URLSearchParams();
+    if (query.status) params.set("status", query.status);
+    if (query.limit !== undefined) params.set("limit", String(Math.trunc(query.limit)));
+    const encoded = params.toString();
+    const data = await this.request<{ jobs: Job[] }>(
+      "GET",
+      `/api/v1/jobs${encoded ? `?${encoded}` : ""}`,
+    );
+    return data.jobs;
+  }
+
+  getJob(id: string): Promise<Job> {
+    return this.request("GET", `/api/v1/jobs/${id}`);
+  }
+
+  retryJob(id: string): Promise<Job> {
+    return this.request("POST", `/api/v1/jobs/${id}/retry`, {});
+  }
+
+  transferPod(id: string, request: TransferRequest): Promise<TransferAccepted> {
+    return this.request("POST", `/api/v1/pods/${id}/transfer`, request);
+  }
+
+  // webhooks ---------------------------------------------------------------
+
+  async listWebhooks(): Promise<WebhookSubscription[]> {
+    const data = await this.request<{ webhooks: WebhookSubscription[] }>(
+      "GET",
+      "/api/v1/webhooks",
+    );
+    return data.webhooks;
+  }
+
+  createWebhook(request: CreateWebhookRequest): Promise<CreatedWebhook> {
+    return this.request("POST", "/api/v1/webhooks", request);
+  }
+
+  updateWebhook(id: string, request: UpdateWebhookRequest): Promise<WebhookSubscription> {
+    return this.request("PATCH", `/api/v1/webhooks/${id}`, request);
+  }
+
+  deleteWebhook(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/webhooks/${id}`);
+  }
+
+  async rotateWebhookSecret(id: string): Promise<string> {
+    const data = await this.request<{ secret: string }>(
+      "POST",
+      `/api/v1/webhooks/${id}/rotate-secret`,
+      {},
+    );
+    return data.secret;
+  }
+
+  async listWebhookDeliveries(id: string): Promise<WebhookDelivery[]> {
+    const data = await this.request<{ deliveries: WebhookDelivery[] }>(
+      "GET",
+      `/api/v1/webhooks/${id}/deliveries`,
+    );
+    return data.deliveries;
+  }
+
+  // template nests ---------------------------------------------------------
+
+  async importTemplateToml(toml: string): Promise<ImportResult> {
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/templates/import?save=true`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${this.apiKey}`,
+          "content-type": "application/toml",
+        },
+        body: toml,
+        signal: this.signal,
+      },
+    );
+    const text = await response.text();
+    if (!response.ok) {
+      throw new IgniteContainersError(response.status, "import_failed", text);
+    }
+    return JSON.parse(text) as ImportResult;
+  }
+
+  async exportTemplateToml(id: string): Promise<string> {
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/templates/${id}/export?format=toml`,
+      {
+        headers: { authorization: `Bearer ${this.apiKey}` },
+        signal: this.signal,
+      },
+    );
+    const text = await response.text();
+    if (!response.ok) {
+      throw new IgniteContainersError(response.status, "export_failed", text);
+    }
+    return text;
+  }
+
+  async convertCompose(yaml: string): Promise<ComposeConverted> {
+    const response = await this.fetchImpl(`${this.baseUrl}/api/v1/compose/convert`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${this.apiKey}`,
+        "content-type": "application/yaml",
+      },
+      body: yaml,
+      signal: this.signal,
+    });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new IgniteContainersError(response.status, "convert_failed", text);
+    }
+    return JSON.parse(text) as ComposeConverted;
+  }
+
+  importNest(request: ImportNestRequest): Promise<NestImportResult> {
+    return this.request("POST", "/api/v1/templates/nests", request);
+  }
+
+  // proxy adapters ---------------------------------------------------------
+
+  listProxyAdapters(): Promise<AdapterList> {
+    return this.request("GET", "/api/v1/proxy/adapters");
+  }
+
+  createProxyAdapter(request: CreateAdapterRequest): Promise<ProxyAdapter> {
+    return this.request("POST", "/api/v1/proxy/adapters", request);
+  }
+
+  deleteProxyAdapter(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/proxy/adapters/${id}`);
+  }
+
+  // files and limits -------------------------------------------------------
+
+  async downloadFile(podId: string, path: string): Promise<ArrayBuffer> {
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/pods/${podId}/files/download?path=${encodeURIComponent(path)}`,
+      {
+        headers: { authorization: `Bearer ${this.apiKey}` },
+        signal: this.signal,
+      },
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new IgniteContainersError(response.status, "download_failed", text);
+    }
+    return response.arrayBuffer();
+  }
+
+  async uploadFile(
+    podId: string,
+    path: string,
+    contents: Blob | ArrayBuffer | Uint8Array,
+  ): Promise<FileEntry> {
+    const response = await this.fetchImpl(
+      `${this.baseUrl}/api/v1/pods/${podId}/files/upload?path=${encodeURIComponent(path)}`,
+      {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${this.apiKey}`,
+          "content-type": "application/octet-stream",
+        },
+        body: contents as unknown as BodyInit,
+        signal: this.signal,
+      },
+    );
+    const text = await response.text();
+    if (!response.ok) {
+      throw new IgniteContainersError(response.status, "upload_failed", text);
+    }
+    return JSON.parse(text) as FileEntry;
+  }
+
+  updateLimits(id: string, limits: Limits): Promise<Pod> {
+    return this.request("PATCH", `/api/v1/pods/${id}/limits`, { limits });
+  }
+
+  deployCompose(request: DeployComposeRequest): Promise<ComposeDeployResult> {
+    return this.request("POST", "/api/v1/compose/deploy", request);
+  }
+
+  // storage ----------------------------------------------------------------
+
+  async listStorageBackends(tenantId?: string): Promise<StorageBackend[]> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    const data = await this.request<{ backends: StorageBackend[] }>(
+      "GET",
+      `/api/v1/storage/backends${suffix}`,
+    );
+    return data.backends;
+  }
+
+  createStorageBackend(request: CreateStorageBackendRequest): Promise<StorageBackend> {
+    return this.request("POST", "/api/v1/storage/backends", request);
+  }
+
+  getStorageBackend(id: string): Promise<StorageBackend> {
+    return this.request("GET", `/api/v1/storage/backends/${id}`);
+  }
+
+  updateStorageBackend(
+    id: string,
+    request: UpdateStorageBackendRequest,
+  ): Promise<StorageBackend> {
+    return this.request("PATCH", `/api/v1/storage/backends/${id}`, request);
+  }
+
+  deleteStorageBackend(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/storage/backends/${id}`);
+  }
+
+  async listVolumes(resourceGroupId?: string): Promise<Volume[]> {
+    const suffix = resourceGroupId ? `?resource_group_id=${resourceGroupId}` : "";
+    const data = await this.request<{ volumes: Volume[] }>(
+      "GET",
+      `/api/v1/storage/volumes${suffix}`,
+    );
+    return data.volumes;
+  }
+
+  createVolume(request: CreateVolumeRequest): Promise<Volume> {
+    return this.request("POST", "/api/v1/storage/volumes", request);
+  }
+
+  getVolume(id: string): Promise<Volume> {
+    return this.request("GET", `/api/v1/storage/volumes/${id}`);
+  }
+
+  updateVolume(id: string, request: UpdateVolumeRequest): Promise<Volume> {
+    return this.request("PATCH", `/api/v1/storage/volumes/${id}`, request);
+  }
+
+  deleteVolume(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/storage/volumes/${id}`);
+  }
+
+  async listStorageGatewayTokens(tenantId: string): Promise<StorageGatewayToken[]> {
+    const data = await this.request<{ tokens: StorageGatewayToken[] }>(
+      "GET",
+      `/api/v1/storage/gateway-tokens?tenant_id=${tenantId}`,
+    );
+    return data.tokens;
+  }
+
+  createStorageGatewayToken(
+    request: CreateStorageGatewayTokenRequest,
+  ): Promise<CreatedStorageGatewayToken> {
+    return this.request("POST", "/api/v1/storage/gateway-tokens", request);
+  }
+
+  revokeStorageGatewayToken(id: string, tenantId: string): Promise<void> {
+    return this.request(
+      "DELETE",
+      `/api/v1/storage/gateway-tokens/${id}?tenant_id=${tenantId}`,
+    );
+  }
+
+  reportVolumeUsage(id: string, usedBytes: number): Promise<Volume> {
+    return this.request("POST", `/api/v1/storage/volumes/${id}/usage`, {
+      used_bytes: usedBytes,
+    });
+  }
+
+  async listPodVolumes(podId: string): Promise<PodVolumeMountView[]> {
+    const data = await this.request<{ mounts: PodVolumeMountView[] }>(
+      "GET",
+      `/api/v1/pods/${podId}/volumes`,
+    );
+    return data.mounts;
+  }
+
+  mountVolume(podId: string, request: MountVolumeRequest): Promise<PodVolumeMount> {
+    return this.request("POST", `/api/v1/pods/${podId}/volumes`, request);
+  }
+
+  unmountVolume(podId: string, mountId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${podId}/volumes/${mountId}`);
+  }
+
+  async listExternalDatabases(tenantId?: string): Promise<ExternalDatabase[]> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    const data = await this.request<{ databases: ExternalDatabase[] }>(
+      "GET",
+      `/api/v1/external-databases${suffix}`,
+    );
+    return data.databases;
+  }
+
+  createExternalDatabase(request: CreateExternalDatabaseRequest): Promise<ExternalDatabase> {
+    return this.request("POST", "/api/v1/external-databases", request);
+  }
+
+  getExternalDatabase(id: string): Promise<ExternalDatabase> {
+    return this.request("GET", `/api/v1/external-databases/${id}`);
+  }
+
+  updateExternalDatabase(
+    id: string,
+    request: UpdateExternalDatabaseRequest,
+  ): Promise<ExternalDatabase> {
+    return this.request("PATCH", `/api/v1/external-databases/${id}`, request);
+  }
+
+  deleteExternalDatabase(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/external-databases/${id}`);
+  }
+
+  testExternalDatabase(id: string): Promise<DatabaseTest> {
+    return this.request("POST", `/api/v1/external-databases/${id}/test`, {});
+  }
+
+  async listPodExternalDatabases(
+    podId: string,
+  ): Promise<PodExternalDatabaseView[]> {
+    const data = await this.request<{ bindings: PodExternalDatabaseView[] }>(
+      "GET",
+      `/api/v1/pods/${podId}/external-databases`,
+    );
+    return data.bindings;
+  }
+
+  bindPodExternalDatabase(
+    podId: string,
+    request: BindExternalDatabaseRequest,
+  ): Promise<PodExternalDatabase> {
+    return this.request("POST", `/api/v1/pods/${podId}/external-databases`, request);
+  }
+
+  unbindPodExternalDatabase(podId: string, bindingId: string): Promise<void> {
+    return this.request(
+      "DELETE",
+      `/api/v1/pods/${podId}/external-databases/${bindingId}`,
+    );
+  }
+
+  // metrics storage --------------------------------------------------------
+
+  getMetricsStoragePolicy(tenantId?: string): Promise<MetricsStoragePolicy> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    return this.request("GET", `/api/v1/metrics/storage-policy${suffix}`);
+  }
+
+  putMetricsStoragePolicy(
+    request: UpsertMetricsStoragePolicyRequest,
+    tenantId?: string,
+  ): Promise<MetricsStoragePolicy> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    return this.request("PUT", `/api/v1/metrics/storage-policy${suffix}`, request);
+  }
+
+  async listMetricsArchives(tenantId?: string): Promise<MetricsArchive[]> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    const data = await this.request<{ archives: MetricsArchive[] }>(
+      "GET",
+      `/api/v1/metrics/archive${suffix}`,
+    );
+    return data.archives;
+  }
+
+  archiveMetrics(tenantId?: string): Promise<MetricsArchiveReport> {
+    const suffix = tenantId ? `?tenant_id=${tenantId}` : "";
+    return this.request("POST", `/api/v1/metrics/archive-now${suffix}`, {});
+  }
+
+  // git -------------------------------------------------------------------
+
+  listGitCredentials(): Promise<GitCredential[]> {
+    return this.request("GET", "/api/v1/git/credentials");
+  }
+
+  createGitCredential(request: CreateGitCredentialRequest): Promise<GitCredential> {
+    return this.request("POST", "/api/v1/git/credentials", request);
+  }
+
+  getGitCredential(id: string): Promise<GitCredential> {
+    return this.request("GET", `/api/v1/git/credentials/${id}`);
+  }
+
+  deleteGitCredential(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/git/credentials/${id}`);
+  }
+
+  listGitSources(): Promise<GitSource[]> {
+    return this.request("GET", "/api/v1/git/sources");
+  }
+
+  createGitSource(request: CreateGitSourceRequest): Promise<CreatedGitSource> {
+    return this.request("POST", "/api/v1/git/sources", request);
+  }
+
+  getGitSource(id: string): Promise<GitSource> {
+    return this.request("GET", `/api/v1/git/sources/${id}`);
+  }
+
+  updateGitSource(id: string, request: UpdateGitSourceRequest): Promise<GitSource> {
+    return this.request("PATCH", `/api/v1/git/sources/${id}`, request);
+  }
+
+  deleteGitSource(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/git/sources/${id}`);
+  }
+
+  triggerGitBuild(id: string, reference?: string): Promise<GitBuild> {
+    return this.request("POST", `/api/v1/git/sources/${id}/build`, { reference });
+  }
+
+  async listGitBuilds(): Promise<GitBuild[]> {
+    const data = await this.request<{ builds: GitBuild[] }>("GET", "/api/v1/git/builds");
+    return data.builds;
+  }
+
+  getGitBuild(id: string): Promise<GitBuild> {
+    return this.request("GET", `/api/v1/git/builds/${id}`);
+  }
+
+  // images ----------------------------------------------------------------
+
+  async listImages(): Promise<Image[]> {
+    const data = await this.request<{ images: Image[] }>("GET", "/api/v1/images");
+    return data.images;
+  }
+
+  getImage(id: string): Promise<Image> {
+    return this.request("GET", `/api/v1/images/${id}`);
+  }
+
+  imageCopies(id: string): Promise<ImageCopy[]> {
+    return this.request("GET", `/api/v1/images/${id}/copies`);
+  }
+
+  imagePulls(id: string): Promise<ImagePull[]> {
+    return this.request("GET", `/api/v1/images/${id}/pulls`);
+  }
+
+  imageUsage(): Promise<unknown[]> {
+    return this.request("GET", "/api/v1/images/usage");
+  }
+
+  allImagePulls(): Promise<ImagePull[]> {
+    return this.request("GET", "/api/v1/images/pulls");
+  }
+
+  pullImage(request: PullImageRequest): Promise<Image> {
+    return this.request("POST", "/api/v1/images/pull", request);
+  }
+
+  uploadImage(request: UploadImageRequest): Promise<Image> {
+    return this.request("POST", "/api/v1/images/upload", request);
+  }
+
+  deleteImage(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/images/${id}`);
+  }
+
+  // pod port bindings ---------------------------------------------------
+
+  async listPodPorts(podId: string): Promise<PodPort[]> {
+    const data = await this.request<{ ports: PodPort[] }>(
+      "GET",
+      `/api/v1/pods/${podId}/ports`,
+    );
+    return data.ports;
+  }
+
+  createPodPort(
+    podId: string,
+    request: CreatePodPortRequest,
+  ): Promise<PodPort> {
+    return this.request("POST", `/api/v1/pods/${podId}/ports`, request);
+  }
+
+  updatePodPort(
+    podId: string,
+    portId: string,
+    request: UpdatePodPortRequest,
+  ): Promise<PodPort> {
+    return this.request(
+      "PATCH",
+      `/api/v1/pods/${podId}/ports/${portId}`,
+      request,
+    );
+  }
+
+  async podPortHistory(podId: string): Promise<PodPortEvent[]> {
+    const data = await this.request<{ events: PodPortEvent[] }>(
+      "GET",
+      `/api/v1/pods/${podId}/ports/history`,
+    );
+    return data.events;
+  }
+
+  deletePodPort(podId: string, portId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/pods/${podId}/ports/${portId}`);
+  }
+
+  // tenants and resource groups -------------------------------------------
+
+  listTenants(): Promise<Tenant[]> {
+    return this.request("GET", "/api/v1/tenants");
+  }
+
+  createTenant(request: CreateTenantRequest): Promise<Tenant> {
+    return this.request("POST", "/api/v1/tenants", request);
+  }
+
+  getTenant(id: string): Promise<Tenant> {
+    return this.request("GET", `/api/v1/tenants/${id}`);
+  }
+
+  updateTenant(id: string, request: UpdateTenantRequest): Promise<Tenant> {
+    return this.request("PATCH", `/api/v1/tenants/${id}`, request);
+  }
+
+  async listTenantAccess(tenantId: string): Promise<string[]> {
+    const data = await this.request<{ api_key_ids: string[] }>(
+      "GET",
+      `/api/v1/tenants/${tenantId}/access`,
+    );
+    return data.api_key_ids;
+  }
+
+  async grantTenantAccess(
+    tenantId: string,
+    request: GrantTenantAccessRequest,
+  ): Promise<string[]> {
+    const data = await this.request<{ api_key_ids: string[] }>(
+      "POST",
+      `/api/v1/tenants/${tenantId}/access`,
+      request,
+    );
+    return data.api_key_ids;
+  }
+
+  revokeTenantAccess(tenantId: string, keyId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/tenants/${tenantId}/access/${keyId}`);
+  }
+
+  listTenantResourceGroups(tenantId: string): Promise<ResourceGroup[]> {
+    return this.request("GET", `/api/v1/tenants/${tenantId}/resource-groups`);
+  }
+
+  createResourceGroup(
+    tenantId: string,
+    request: CreateResourceGroupRequest,
+  ): Promise<ResourceGroup> {
+    return this.request("POST", `/api/v1/tenants/${tenantId}/resource-groups`, request);
+  }
+
+  listResourceGroups(): Promise<ResourceGroup[]> {
+    return this.request("GET", "/api/v1/resource-groups");
+  }
+
+  getResourceGroup(id: string): Promise<ResourceGroup> {
+    return this.request("GET", `/api/v1/resource-groups/${id}`);
+  }
+
+  updateResourceGroup(id: string, request: UpdateResourceGroupRequest): Promise<ResourceGroup> {
+    return this.request("PATCH", `/api/v1/resource-groups/${id}`, request);
+  }
+
+  deleteResourceGroup(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/resource-groups/${id}`);
+  }
+
+  getReference(referenceId: string): Promise<ReferenceAggregate> {
+    return this.request("GET", `/api/v1/references/${encodeURIComponent(referenceId)}`);
+  }
+
+  // transfers --------------------------------------------------------------
+
+  createTransferKey(request: CreateTransferKeyRequest): Promise<CreatedTransferKey> {
+    return this.request("POST", "/api/v1/transfer-keys", request);
+  }
+
+  listTransferKeys(tenantId: string): Promise<TransferKey[]> {
+    return this.request("GET", `/api/v1/transfer-keys?tenant_id=${tenantId}`);
+  }
+
+  revokeTransferKey(id: string, tenantId: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/transfer-keys/${id}?tenant_id=${tenantId}`);
+  }
+
+  startTransfer(resourceGroupId: string, request: StartTransferRequest): Promise<TenantTransfer> {
+    return this.request("POST", `/api/v1/resource-groups/${resourceGroupId}/transfer`, request);
+  }
+
+  listTransfers(resourceGroupId: string): Promise<TenantTransfer[]> {
+    return this.request("GET", `/api/v1/resource-groups/${resourceGroupId}/transfers`);
+  }
+
+  getTransfer(id: string): Promise<TenantTransfer> {
+    return this.request("GET", `/api/v1/transfers/${id}`);
+  }
+
+  cancelTransfer(id: string): Promise<TenantTransfer> {
+    return this.request("POST", `/api/v1/transfers/${id}/cancel`, {});
+  }
+
+  dismissTransfer(id: string): Promise<TenantTransfer> {
+    return this.request("POST", `/api/v1/transfers/${id}/dismiss`, {});
+  }
+
+  // usage and token profiles ----------------------------------------------
+
+  usage(
+    scope: string,
+    scopeId: string,
+    window: string,
+    unit: "times" | "tokens" = "times",
+    includeExact = false,
+  ): Promise<UsageValue> {
+    const params = new URLSearchParams({
+      scope,
+      scope_id: scopeId,
+      window,
+      unit,
+      include_exact: String(includeExact),
+    });
+    return this.request("GET", `/api/v1/usage?${params.toString()}`);
+  }
+
+  listMeteringProfiles(): Promise<MeteringProfile[]> {
+    return this.request("GET", "/api/v1/metering/profiles");
+  }
+
+  createMeteringProfile(request: CreateMeteringProfileRequest): Promise<MeteringProfile> {
+    return this.request("POST", "/api/v1/metering/profiles", request);
   }
 
   health(): Promise<{ status: string; service: string; version: string; uptime_seconds: number }> {
@@ -718,7 +1846,7 @@ export class IgniteContainersClient {
 
   /**
    * Escape hatch for endpoints added before this client is regenerated.
-   * `path` is relative to `/api/v1`, e.g. `/servers?limit=1`.
+   * `path` is relative to `/api/v1`, e.g. `/pods?limit=1`.
    */
   requestJson<T>(method: string, path: string, body?: unknown): Promise<T> {
     return this.request<T>(method.toUpperCase(), `/api/v1${path}`, body);

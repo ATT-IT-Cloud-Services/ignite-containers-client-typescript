@@ -14,7 +14,7 @@ const client = new IgniteContainersClient({
   apiKey: process.env.IGNITE_CONTAINERS_API_KEY!,
 });
 
-const server = await client.createServer({
+const pod = await client.createPod({
   node_id: nodeId,
   template_id: templateId,
   name: "survival",
@@ -26,12 +26,12 @@ const server = await client.createServer({
   },
 });
 
-await client.power(server.id, "start");
-const stats = await client.stats(server.id);
+await client.power(pod.id, "start");
+const stats = await client.stats(pod.id);
 console.log(stats.cpu_percent, stats.memory_bytes);
 
 try {
-  await client.deleteServer(server.id);
+  await client.deletePod(pod.id);
 } catch (error) {
   if (error instanceof IgniteContainersError && error.status === 409) {
     console.log("conflict:", error.code, error.message);
@@ -56,16 +56,37 @@ The client never logs the API key. All methods return typed results or throw
 ## Newer operator endpoints
 
 ```ts
-const env = await client.getServerEnvironment(serverId);
+const env = await client.getPodEnvironment(podId);
 const audit = await client.listAuditEvents(100);
 const state = await client.getNodeState(nodeId);
 const routes = await client.listProxyRoutes();
 await client.reconcileProxy();
 const versions = await client.listTemplateVersions(templateId);
-const response = await client.logsStream(serverId); // SSE Response; read response.body
+const response = await client.logsStream(podId); // SSE Response; read response.body
 const metrics = await client.metrics();
 ```
 
 The client types include audit events, proxy routes/status, node desired state,
-server environment and template versions. `health()`, `ready()`, `openapi()` and `docs()`
+pod environment and template versions. `health()`, `ready()`, `openapi()` and `docs()`
 cover the root operational endpoints.
+
+## Full operator surface
+
+```ts
+const groups = await client.listRuntimeGroups();
+const ips = await client.listIps({ node_id: nodeId });
+const platform = await client.getPlatform(podId);
+const policy = await client.getUpdatePolicy(podId);
+const revisions = await client.listRevisions(podId);
+const usage = await client.podUsage(podId, from, to);
+const webhooks = await client.listWebhooks();
+const jobs = await client.listAllJobs({ status: "failed" });
+const adapters = await client.listProxyAdapters();
+const bytes = await client.downloadFile(podId, "server.properties");
+await client.uploadFile(podId, "server.properties", bytes);
+await client.transferPod(podId, { node_id: targetNodeId, mode: "copy" });
+```
+
+Runtime groups, floating IPs, port forwards, platform settings, autonomous
+updates, metering, global jobs, transfers, webhooks, proxy adapters and template
+nests are typed. See [`docs/API-COVERAGE.md`](../../docs/API-COVERAGE.md).
