@@ -1206,6 +1206,208 @@ export interface UsageRangeQuery {
   to: Timestamp;
 }
 
+// billing report ---------------------------------------------------------
+
+export interface BillingCoverage {
+  requested_from_ms: number;
+  requested_to_ms: number;
+  effective_from_ms: number;
+  effective_to_ms: number;
+  first_sample_ms?: number | null;
+  last_sample_ms?: number | null;
+  interval_seconds: number;
+  gaps: number;
+  complete: boolean;
+}
+
+export interface BillingVolumeTotals {
+  count: number;
+  attached_count: number;
+  unattached_count: number;
+  provisioned_byte_seconds: number;
+  used_bytes: number;
+  used_byte_seconds: number;
+  ingress_bytes: number;
+  egress_bytes: number;
+}
+
+export interface BillingPortTotals {
+  declared_current: number;
+  allocated_current: number;
+  forwarded_current: number;
+  port_seconds: number;
+  created: number;
+  updated: number;
+  deleted: number;
+}
+
+export interface BillingBuildTotals {
+  count: number;
+  succeeded: number;
+  failed: number;
+  running: number;
+  queued: number;
+  cancelled: number;
+  duration_ms: number;
+}
+
+export interface BillingImageTotals {
+  count: number;
+  stored_bytes: number;
+  copy_bytes: number;
+  pull_bytes: number;
+  pull_count: number;
+}
+
+export interface BillingTotals {
+  pod_usage: UsageWindow;
+  volumes: BillingVolumeTotals;
+  ports: BillingPortTotals;
+  builds: BillingBuildTotals;
+  images: BillingImageTotals;
+}
+
+export interface BillingDeclaredPort {
+  port_id: Uuid;
+  container_port: number;
+  host_ip?: string | null;
+  host_port?: number | null;
+  protocol: string;
+  exposure: string;
+  label?: string | null;
+  created_at_ms: number;
+}
+
+export interface BillingAllocatedPort {
+  allocation_id: Uuid;
+  ip: string;
+  port: number;
+  protocol: string;
+  primary: boolean;
+  label?: string | null;
+  created_at_ms: number;
+}
+
+export interface BillingForwardedPort {
+  forward_id: Uuid;
+  external_ip: string;
+  external_port: number;
+  protocol: string;
+  internal_ip: string;
+  internal_port: number;
+  label?: string | null;
+  created_at_ms: number;
+}
+
+export interface BillingPodPorts {
+  declared_current: number;
+  allocated_current: number;
+  forwarded_current: number;
+  port_seconds: number;
+  created: number;
+  updated: number;
+  deleted: number;
+  declared: BillingDeclaredPort[];
+  allocated: BillingAllocatedPort[];
+  forwarded: BillingForwardedPort[];
+}
+
+export interface BillingPod {
+  pod_id: Uuid;
+  resource_group_id: Uuid;
+  name: string;
+  external_ref?: string | null;
+  reference_id?: string | null;
+  coverage: BillingCoverage;
+  usage: UsageWindow;
+  ports: BillingPodPorts;
+}
+
+export interface BillingVolumeMount {
+  pod_id: Uuid;
+  mount_path: string;
+  read_only: boolean;
+  created_at_ms: number;
+}
+
+export interface BillingVolume {
+  volume_id: Uuid;
+  resource_group_id: Uuid;
+  name: string;
+  storage_class: string;
+  reference_id?: string | null;
+  provisioned_mb: number;
+  max_size_mb: number;
+  auto_scale: boolean;
+  used_bytes: number;
+  last_used_at_ms?: number | null;
+  attached: boolean;
+  attribution: string;
+  mounts: BillingVolumeMount[];
+  provisioned_byte_seconds: number;
+  used_byte_seconds: number;
+  ingress_bytes: number;
+  egress_bytes: number;
+  coverage: BillingCoverage;
+  used_coverage: BillingCoverage;
+}
+
+export interface BillingBuild {
+  build_id: Uuid;
+  source_id: Uuid;
+  pod_id: Uuid;
+  resource_group_id: Uuid;
+  status: string;
+  reference: string;
+  commit_sha?: string | null;
+  image?: string | null;
+  error?: string | null;
+  created_at_ms: number;
+  started_at_ms?: number | null;
+  finished_at_ms?: number | null;
+  queue_ms?: number | null;
+  duration_ms?: number | null;
+  coverage: BillingCoverage;
+}
+
+export interface BillingImage {
+  image_id: Uuid;
+  reference: string;
+  digest: string;
+  reference_id?: string | null;
+  owned_by_resource_group: boolean;
+  stored_bytes: number;
+  copy_bytes: number;
+  pull_bytes: number;
+  pull_count: number;
+  created_at_ms: number;
+  updated_at_ms: number;
+}
+
+export interface BillingResourceGroup {
+  resource_group_id: Uuid;
+  tenant_id: Uuid;
+  name: string;
+  slug: string;
+  reference_id?: string | null;
+  coverage: BillingCoverage;
+  totals: BillingTotals;
+  pods: BillingPod[];
+  volumes: BillingVolume[];
+  builds: BillingBuild[];
+  images: BillingImage[];
+}
+
+export interface BillingReport {
+  scope: string;
+  scope_id: Uuid;
+  from_ms: number;
+  to_ms: number;
+  coverage: BillingCoverage;
+  totals: BillingTotals;
+  resource_groups: BillingResourceGroup[];
+}
+
 // jobs, transfer, webhooks -----------------------------------------------
 
 export interface JobQuery {

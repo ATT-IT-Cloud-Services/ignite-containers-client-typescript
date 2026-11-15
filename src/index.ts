@@ -59,6 +59,7 @@ import type {
   UpdateResourceGroupRequest,
   UpdateTenantRequest,
   UsageValue,
+  BillingReport,
   Allocation,
   ApiKey,
   AuditEvent,
@@ -1784,6 +1785,21 @@ export class IgniteContainersClient {
   }
 
   // usage and token profiles ----------------------------------------------
+
+  billingReport(
+    scope: "tenant" | "resource_group",
+    scopeId: string,
+    fromMs: number,
+    toMs: number,
+  ): Promise<BillingReport> {
+    const params = new URLSearchParams({
+      scope,
+      scope_id: scopeId,
+      from_ms: String(Math.trunc(fromMs)),
+      to_ms: String(Math.trunc(toMs)),
+    });
+    return this.request("GET", `/api/v1/billing?${params.toString()}`);
+  }
 
   usage(
     scope: string,

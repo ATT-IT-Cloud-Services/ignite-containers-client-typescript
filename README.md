@@ -90,3 +90,23 @@ await client.transferPod(podId, { node_id: targetNodeId, mode: "copy" });
 Runtime groups, floating IPs, port forwards, platform settings, autonomous
 updates, metering, global jobs, transfers, webhooks, proxy adapters and template
 nests are typed. See [`docs/API-COVERAGE.md`](../../docs/API-COVERAGE.md).
+
+## Billing report
+
+```ts
+const report = await client.billingReport(
+  "tenant",
+  tenantId,
+  Date.UTC(2026, 9, 1),
+  Date.UTC(2026, 10, 1),
+);
+
+for (const group of report.resource_groups) {
+  console.log(group.totals.pod_usage, group.totals.volumes, group.totals.ports);
+  for (const pod of group.pods) console.log(pod.pod_id, pod.usage, pod.ports);
+  for (const volume of group.volumes) console.log(volume.volume_id, volume.used_byte_seconds);
+}
+```
+
+The report is itemised and totals are not double counted. See
+[`docs/BILLING.md`](../../docs/BILLING.md#13-one-shot-billing-report).
