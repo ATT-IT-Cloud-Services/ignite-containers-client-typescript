@@ -740,11 +740,13 @@ export class IgniteContainersClient {
     path: string,
     content: string,
     encoding: "utf8" | "base64" = "utf8",
+    etag?: string,
   ): Promise<FileEntry> {
     return this.request("PUT", `/api/v1/pods/${podId}/files/content`, {
       path,
       content,
       encoding,
+      ...(etag ? { etag } : {}),
     });
   }
 

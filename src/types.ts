@@ -702,6 +702,7 @@ export interface FileEntry {
   size: number;
   modified_at?: Timestamp | null;
   mode?: number | null;
+  etag?: string | null;
 }
 
 export interface FileList {
@@ -715,6 +716,7 @@ export interface FileContent {
   content: string;
   size: number;
   truncated: boolean;
+  etag?: string | null;
 }
 
 export interface BulkResult {
