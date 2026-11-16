@@ -1249,10 +1249,15 @@ export interface BillingBuildTotals {
   queued: number;
   cancelled: number;
   duration_ms: number;
+  duration_micros: number;
   measured_count: number;
   build_ms: number;
+  build_micros: number;
   cpu_millis: number;
+  cpu_micros: number;
   memory_byte_seconds: number;
+  memory_byte_millis: number;
+  memory_byte_micros: string;
   max_peak_memory_bytes: number;
   disk_read_bytes: number;
   disk_write_bytes: number;
@@ -1377,7 +1382,9 @@ export interface BillingBuild {
   started_at_ms?: number | null;
   finished_at_ms?: number | null;
   queue_ms?: number | null;
+  queue_micros?: number | null;
   duration_ms?: number | null;
+  duration_micros?: number | null;
   usage?: BuildUsage | null;
   coverage: BillingCoverage;
 }
@@ -1840,7 +1847,9 @@ export interface BuildUsageSample {
   driver: string;
   measurement: string;
   wall_ms: number;
+  wall_micros: number;
   cpu_millis: number;
+  cpu_micros: number;
   memory_bytes: number;
   disk_read_bytes: number;
   disk_write_bytes: number;
@@ -1853,11 +1862,18 @@ export interface BuildUsage {
   driver: string;
   measurement: string;
   wall_ms: number;
+  wall_micros: number;
   setup_ms: number;
+  setup_micros: number;
   clone_ms: number;
+  clone_micros: number;
   build_ms: number;
+  build_micros: number;
   cpu_millis: number;
+  cpu_micros: number;
   memory_byte_seconds: number;
+  memory_byte_millis: number;
+  memory_byte_micros: string;
   peak_memory_bytes: number;
   disk_read_bytes: number;
   disk_write_bytes: number;
