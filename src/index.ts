@@ -30,6 +30,10 @@ import type {
   CreateGitCredentialRequest,
   CreateGitSourceRequest,
   CreatePodPortRequest,
+  CreateRelayRequest,
+  InternalRelay,
+  RelayDetail,
+  UpdateRelayRequest,
   CreatedGitSource,
   GitBuild,
   BuildUsageReport,
@@ -197,7 +201,7 @@ export class IgniteContainersError extends Error {
 }
 
 export interface IgniteContainersClientOptions {
-  /** Control plane base URL, e.g. `https://games.example.com`. */
+  /** Control plane base URL, e.g. `https://api.example.com`. */
   baseUrl: string;
   /** API key (`ic_...`). */
   apiKey: string;
@@ -336,6 +340,29 @@ export class IgniteContainersClient {
 
   deleteProxyCertificate(id: string): Promise<ProxyCertificateDeleteResult> {
     return this.request("DELETE", `/api/v1/proxy/certificates/${id}`);
+  }
+
+  // internal relays --------------------------------------------------------
+
+  async listRelays(): Promise<InternalRelay[]> {
+    const data = await this.request<{ relays: InternalRelay[] }>("GET", "/api/v1/relays");
+    return data.relays;
+  }
+
+  createRelay(request: CreateRelayRequest): Promise<RelayDetail> {
+    return this.request("POST", "/api/v1/relays", request);
+  }
+
+  getRelay(id: string): Promise<RelayDetail> {
+    return this.request("GET", `/api/v1/relays/${id}`);
+  }
+
+  updateRelay(id: string, request: UpdateRelayRequest): Promise<RelayDetail> {
+    return this.request("PATCH", `/api/v1/relays/${id}`, request);
+  }
+
+  deleteRelay(id: string): Promise<void> {
+    return this.request("DELETE", `/api/v1/relays/${id}`);
   }
 
   // network fabric ---------------------------------------------------------
@@ -1143,6 +1170,36 @@ export class IgniteContainersClient {
     return this.request("POST", `/api/v1/pods/${id}/revisions/${revisionId}/pin`, {
       pinned,
     });
+  }
+
+  /**
+   * Activate one existing revision with a cutover strategy.
+   *
+   * `hard` starts the revision in the background and switches at once after
+   * `waitSeconds` (0 = immediate); `gradual` moves traffic through `steps`
+   * (increasing, last 100), each after `stepSeconds`. The same call rolls back
+   * to an older revision.
+   */
+  activateRevision(
+    id: string,
+    revisionId: string,
+    options: {
+      mode: "hard" | "gradual";
+      steps?: number[];
+      stepSeconds?: number;
+      waitSeconds?: number;
+    },
+  ): Promise<Rollout> {
+    return this.request(
+      "POST",
+      `/api/v1/pods/${id}/revisions/${revisionId}/activate`,
+      {
+        mode: options.mode,
+        steps: options.steps,
+        step_seconds: options.stepSeconds,
+        wait_seconds: options.waitSeconds,
+      },
+    );
   }
 
   async getRollout(id: string): Promise<Rollout | undefined> {

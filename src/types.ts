@@ -121,6 +121,91 @@ export interface VnetAttachment {
   created_at: Timestamp;
 }
 
+export interface RelayBackend {
+  pod_id: Uuid;
+  ip: string;
+  port: number;
+  weight?: number;
+}
+
+export interface RelayContract {
+  listen: string;
+  protocol: string;
+  distribution: string;
+  profile: string;
+  sticky?: boolean;
+  health_path?: string | null;
+  vnet_id: Uuid;
+  backends: RelayBackend[];
+}
+
+export interface InternalRelay {
+  id: Uuid;
+  pod_id: Uuid;
+  vnet_id: Uuid;
+  node_id: Uuid;
+  resource_group_id?: Uuid | null;
+  name: string;
+  listen_port: number;
+  backend_port: number;
+  protocol: string;
+  distribution: string;
+  profile: string;
+  image: string;
+  startup: string;
+  membership: string;
+  member_pods?: Uuid[];
+  weights?: Record<string, number>;
+  health_path?: string | null;
+  sticky?: boolean;
+  proxy_route_id?: Uuid | null;
+  enabled?: boolean;
+  created_at: Timestamp;
+  updated_at: Timestamp;
+}
+
+export interface RelayDetail {
+  relay: InternalRelay;
+  address?: string | null;
+  config: RelayContract;
+}
+
+export interface CreateRelayRequest {
+  name: string;
+  vnet_id: Uuid;
+  node_id?: Uuid;
+  resource_group_id?: Uuid;
+  listen_port?: number;
+  backend_port?: number;
+  protocol?: string;
+  distribution?: string;
+  membership?: string;
+  member_pod_ids?: Uuid[];
+  weights?: Record<string, number>;
+  image?: string;
+  startup?: string;
+  health_path?: string;
+  sticky?: boolean;
+  domain?: string;
+  limits?: Limits;
+}
+
+export interface UpdateRelayRequest {
+  listen_port?: number;
+  backend_port?: number;
+  protocol?: string;
+  distribution?: string;
+  membership?: string;
+  member_pod_ids?: Uuid[];
+  weights?: Record<string, number>;
+  image?: string;
+  startup?: string;
+  health_path?: string;
+  clear_health_path?: boolean;
+  sticky?: boolean;
+  enabled?: boolean;
+}
+
 export interface Interconnect {
   id: Uuid;
   name: string;
