@@ -1172,36 +1172,6 @@ export class IgniteContainersClient {
     });
   }
 
-  /**
-   * Activate one existing revision with a cutover strategy.
-   *
-   * `hard` starts the revision in the background and switches at once after
-   * `waitSeconds` (0 = immediate); `gradual` moves traffic through `steps`
-   * (increasing, last 100), each after `stepSeconds`. The same call rolls back
-   * to an older revision.
-   */
-  activateRevision(
-    id: string,
-    revisionId: string,
-    options: {
-      mode: "hard" | "gradual";
-      steps?: number[];
-      stepSeconds?: number;
-      waitSeconds?: number;
-    },
-  ): Promise<Rollout> {
-    return this.request(
-      "POST",
-      `/api/v1/pods/${id}/revisions/${revisionId}/activate`,
-      {
-        mode: options.mode,
-        steps: options.steps,
-        step_seconds: options.stepSeconds,
-        wait_seconds: options.waitSeconds,
-      },
-    );
-  }
-
   async getRollout(id: string): Promise<Rollout | undefined> {
     const data = await this.request<{ rollout: Rollout | null }>(
       "GET",
