@@ -52,6 +52,7 @@ import type {
   PodPort,
   UploadImageRequest,
   UpdatePodPortRequest,
+  MovePodForwardRequest,
   CreateTenantRequest,
   CreateTransferKeyRequest,
   CreatedTransferKey,
@@ -1126,6 +1127,22 @@ export class IgniteContainersClient {
     return this.request("PATCH", `/api/v1/pods/${id}/forwards/${forwardId}`, request);
   }
 
+  movePodForward(
+    podId: string,
+    forwardId: string,
+    request: MovePodForwardRequest,
+  ): Promise<PortForward> {
+    return this.request(
+      "POST",
+      `/api/v1/pods/${podId}/forwards/${forwardId}/move`,
+      {
+        pod_id: request.podId,
+        internal_ip: request.internalIp,
+        internal_port: request.internalPort,
+      },
+    );
+  }
+
   deletePodForward(id: string, forwardId: string): Promise<void> {
     return this.request("DELETE", `/api/v1/pods/${id}/forwards/${forwardId}`);
   }
@@ -1761,6 +1778,12 @@ export class IgniteContainersClient {
 
   deletePodPort(podId: string, portId: string): Promise<void> {
     return this.request("DELETE", `/api/v1/pods/${podId}/ports/${portId}`);
+  }
+
+  movePodPort(podId: string, portId: string, targetPodId: string): Promise<PodPort> {
+    return this.request("POST", `/api/v1/pods/${podId}/ports/${portId}/move`, {
+      pod_id: targetPodId,
+    });
   }
 
   // tenants and resource groups -------------------------------------------

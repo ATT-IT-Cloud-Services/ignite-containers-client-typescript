@@ -44,7 +44,7 @@ export type Scope =
   | "git:read"
   | "git:write";
 
-export type NodeDriver = "docker" | "kubernetes";
+export type NodeDriver = "docker" | "kubernetes" | "rusternetes";
 export type NodeStatus = "pending" | "online" | "degraded" | "offline" | "maintenance";
 export type PortProtocol = "tcp" | "udp" | "both";
 export type PodState =
@@ -1244,6 +1244,8 @@ export interface UsageWindow {
   storage_byte_seconds: number;
   storage_ingress_bytes: number;
   storage_egress_bytes: number;
+  backup_storage_byte_seconds: number;
+  backup_count: number;
   image_pull_bytes: number;
   image_pull_count: number;
   replica_seconds: number;
@@ -1360,12 +1362,23 @@ export interface BillingImageTotals {
   pull_count: number;
 }
 
+export interface BillingBackupTotals {
+  count: number;
+  current: number;
+  created: number;
+  completed: number;
+  deleted: number;
+  stored_bytes: number;
+  stored_byte_seconds: number;
+}
+
 export interface BillingTotals {
   pod_usage: UsageWindow;
   volumes: BillingVolumeTotals;
   ports: BillingPortTotals;
   builds: BillingBuildTotals;
   images: BillingImageTotals;
+  backups: BillingBackupTotals;
 }
 
 export interface BillingDeclaredPort {
@@ -1488,6 +1501,19 @@ export interface BillingImage {
   updated_at_ms: number;
 }
 
+export interface BillingBackup {
+  backup_id: Uuid;
+  pod_id: Uuid;
+  name: string;
+  stored_bytes: number;
+  stored_byte_seconds: number;
+  created_at_ms: number;
+  completed_at_ms?: number | null;
+  deleted_at_ms?: number | null;
+  deleted: boolean;
+  coverage: BillingCoverage;
+}
+
 export interface BillingResourceGroup {
   resource_group_id: Uuid;
   tenant_id: Uuid;
@@ -1500,6 +1526,7 @@ export interface BillingResourceGroup {
   volumes: BillingVolume[];
   builds: BillingBuild[];
   images: BillingImage[];
+  backups: BillingBackup[];
 }
 
 export interface BillingReport {
@@ -2334,8 +2361,16 @@ export interface PodPortEvent {
   protocol: PortProtocol;
   exposure: PortExposure;
   label?: string | null;
-  action: "created" | "updated" | "deleted";
+  action: "created" | "updated" | "deleted" | "moved";
   recorded_at: Timestamp;
+  from_pod_id?: Uuid | null;
+  to_pod_id?: Uuid | null;
+}
+
+export interface MovePodForwardRequest {
+  podId: string;
+  internalIp?: string;
+  internalPort?: number;
 }
 
 
