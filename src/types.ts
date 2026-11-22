@@ -286,6 +286,31 @@ export interface CreateListenerRouteRequest {
   auto_start?: boolean;
   offline_motd?: string;
   queue_timeout_seconds?: number;
+  enabled?: boolean;
+}
+
+export interface UpdateListenerRequest {
+  name?: string;
+  bind_ip?: string;
+  port?: number;
+  protocol?: "tcp" | "udp";
+  adapter?: string;
+  real_ip?: string;
+  velocity_secret?: string;
+  clear_velocity_secret?: boolean;
+  enabled?: boolean;
+}
+
+export interface UpdateListenerRouteRequest {
+  match_kind?: "exact" | "suffix" | "default";
+  match_value?: string;
+  pod_id?: Uuid;
+  upstream?: string;
+  upstream_port?: number;
+  auto_start?: boolean;
+  offline_motd?: string;
+  queue_timeout_seconds?: number;
+  enabled?: boolean;
 }
 
 export interface ExportTemplateRequest {
@@ -407,6 +432,17 @@ export interface ProxyStatus {
   routes: number;
   certificates: number;
   error?: string | null;
+  nodes: ProxyNodeStatus[];
+}
+
+export interface ProxyNodeStatus {
+  node_id: Uuid;
+  node_name: string;
+  bind_ip: string;
+  enabled: boolean;
+  admin_url?: string | null;
+  reachable: boolean;
+  error?: string | null;
 }
 
 export interface ProxyReconcileResult {
@@ -416,6 +452,41 @@ export interface ProxyReconcileResult {
   certificates: number;
   warning?: string | null;
   caddy?: unknown;
+  nodes: ProxyNodeApply[];
+}
+
+export interface ProxyNodeApply {
+  node_id: Uuid;
+  node_name: string;
+  applied: boolean;
+  error?: string | null;
+}
+
+export interface ProxyNode {
+  node_id: Uuid;
+  admin_url: string;
+  bind_ip: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpsertProxyNodeRequest {
+  admin_url: string;
+  bind_ip: string;
+  enabled?: boolean;
+}
+
+export interface ProxyNodeMutation {
+  node: ProxyNode;
+  applied: boolean;
+  warning?: string | null;
+}
+
+export interface ProxyNodeDeleteResult {
+  deleted: boolean;
+  applied: boolean;
+  warning?: string | null;
 }
 
 export interface DesiredPod {

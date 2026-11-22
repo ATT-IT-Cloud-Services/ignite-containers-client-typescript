@@ -111,6 +111,8 @@ import type {
   CreateInterconnectRequest,
   CreateListenerRequest,
   CreateListenerRouteRequest,
+  UpdateListenerRequest,
+  UpdateListenerRouteRequest,
   ExportTemplateRequest,
   CloneTemplateRequest,
   ExportTemplateResult,
@@ -125,6 +127,10 @@ import type {
   ProxyReconcileResult,
   ProxyRoute,
   ProxyStatus,
+  ProxyNodeStatus,
+  UpsertProxyNodeRequest,
+  ProxyNodeMutation,
+  ProxyNodeDeleteResult,
   ProxyCertificate,
   ProxyCertificateMutation,
   ProxyCertificateDeleteResult,
@@ -323,6 +329,25 @@ export class IgniteContainersClient {
     return this.request("POST", "/api/v1/proxy/reconcile", {});
   }
 
+  async listProxyNodes(): Promise<ProxyNodeStatus[]> {
+    const data = await this.request<{ nodes: ProxyNodeStatus[] }>(
+      "GET",
+      "/api/v1/proxy/nodes",
+    );
+    return data.nodes;
+  }
+
+  upsertProxyNode(
+    nodeId: string,
+    request: UpsertProxyNodeRequest,
+  ): Promise<ProxyNodeMutation> {
+    return this.request("PUT", `/api/v1/proxy/nodes/${nodeId}`, request);
+  }
+
+  deleteProxyNode(nodeId: string): Promise<ProxyNodeDeleteResult> {
+    return this.request("DELETE", `/api/v1/proxy/nodes/${nodeId}`);
+  }
+
   async listProxyCertificates(): Promise<ProxyCertificate[]> {
     const data = await this.request<{ certificates: ProxyCertificate[] }>(
       "GET",
@@ -429,6 +454,13 @@ export class IgniteContainersClient {
     return this.request("DELETE", `/api/v1/proxy/listeners/${id}`);
   }
 
+  updateListener(
+    id: string,
+    request: UpdateListenerRequest,
+  ): Promise<ProxyListener> {
+    return this.request("PATCH", `/api/v1/proxy/listeners/${id}`, request);
+  }
+
   async listListenerRoutes(id: string): Promise<ProxyListenerRoute[]> {
     const data = await this.request<{ routes: ProxyListenerRoute[] }>(
       "GET",
@@ -446,6 +478,18 @@ export class IgniteContainersClient {
 
   deleteListenerRoute(id: string, routeId: string): Promise<void> {
     return this.request("DELETE", `/api/v1/proxy/listeners/${id}/routes/${routeId}`);
+  }
+
+  updateListenerRoute(
+    id: string,
+    routeId: string,
+    request: UpdateListenerRouteRequest,
+  ): Promise<ProxyListenerRoute> {
+    return this.request(
+      "PATCH",
+      `/api/v1/proxy/listeners/${id}/routes/${routeId}`,
+      request,
+    );
   }
 
   exportTemplate(
