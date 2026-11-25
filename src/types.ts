@@ -971,7 +971,8 @@ export interface CreatePodRequest {
   auto_start?: boolean;
   cap_add?: string[];
   devices?: string[];
-  template_id: Uuid;
+  /** Omit together with `image` to start a plain container image. */
+  template_id?: Uuid;
   template_version?: string;
   name: string;
   description?: string;
