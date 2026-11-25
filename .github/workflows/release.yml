@@ -31,10 +31,16 @@ jobs:
           npm install --no-audit --no-fund
           npm version "$version" --no-git-tag-version --allow-same-version
           npm run build
+          # A prerelease version (1.2.3-next.4) cannot be published without an
+          # explicit dist-tag: npm refuses and the whole release job fails.
+          case "$version" in
+            *-*) dist_tag=next ;;
+            *) dist_tag=latest ;;
+          esac
           if npm view "@att-it-cloud-services/ignite-containers-client@$version" version >/dev/null 2>&1; then
             echo "version $version is already published; skipping npm publish"
           else
-            npm publish --access public
+            npm publish --access public --tag "$dist_tag"
           fi
           npm pack --pack-destination .
       - name: Publish release
