@@ -967,7 +967,10 @@ export interface CreateAllocationsRequest {
 
 export interface CreatePodRequest {
   node_id?: Uuid;
+  /** Node class (speed class); placement picks a member of it. */
   runtime_group_id?: Uuid;
+  /** Project resource group the pod belongs to. */
+  resource_group_id?: Uuid;
   auto_start?: boolean;
   cap_add?: string[];
   devices?: string[];
